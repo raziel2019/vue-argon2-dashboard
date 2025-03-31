@@ -1,27 +1,54 @@
+
 <script setup>
-import { onBeforeUnmount, onBeforeMount } from "vue";
+import { onBeforeMount, ref } from "vue";
 import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 import Navbar from "@/examples/PageLayout/Navbar.vue";
 import ArgonInput from "@/components/ArgonInput.vue";
-import ArgonSwitch from "@/components/ArgonSwitch.vue";
 import ArgonButton from "@/components/ArgonButton.vue";
-const body = document.getElementsByTagName("body")[0];
+import { login as loginRequest } from '../services/authService'
+
 
 const store = useStore();
+const router = useRouter();
+const email = ref("");
+const password = ref("");
+const errorMessage = ref("");
+
 onBeforeMount(() => {
   store.state.hideConfigButton = true;
   store.state.showNavbar = false;
   store.state.showSidenav = false;
   store.state.showFooter = false;
-  body.classList.remove("bg-gray-100");
 });
-onBeforeUnmount(() => {
-  store.state.hideConfigButton = false;
-  store.state.showNavbar = true;
-  store.state.showSidenav = true;
-  store.state.showFooter = true;
-  body.classList.add("bg-gray-100");
-});
+
+async function login() {
+  errorMessage.value = "";
+
+  try {
+    const response = await loginRequest({
+      email: email.value,
+      password: password.value,
+    });
+
+    const { token } = response;
+
+    sessionStorage.setItem('auth_token', token);
+    store.state.hideConfigButton = false;
+    store.state.showNavbar = true;
+    store.state.showSidenav = true;
+    store.state.showFooter = true;
+    router.push({ name: 'calendar' });
+
+  } catch (error) {
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMessage.value = error.response.data.message;
+    } else {
+      errorMessage.value = 'Error al iniciar sesión. Por favor, inténtelo de nuevo.';
+    }
+  }
+}
+
 </script>
 <template>
   <div class="container top-0 position-sticky z-index-sticky">
@@ -49,9 +76,10 @@ onBeforeUnmount(() => {
                   <p class="mb-0">Enter your email and password to sign in</p>
                 </div>
                 <div class="card-body">
-                  <form role="form">
+                    <form role="form" @submit.prevent="login">
                     <div class="mb-3">
                       <argon-input
+                        v-model="email"
                         id="email"
                         type="email"
                         placeholder="Email"
@@ -61,6 +89,7 @@ onBeforeUnmount(() => {
                     </div>
                     <div class="mb-3">
                       <argon-input
+                        v-model="password"
                         id="password"
                         type="password"
                         placeholder="Password"
@@ -68,9 +97,7 @@ onBeforeUnmount(() => {
                         size="lg"
                       />
                     </div>
-                    <argon-switch id="rememberMe" name="remember-me"
-                      >Remember me</argon-switch
-                    >
+                    <div v-if="errorMessage" class="text-danger mt-2">{{ errorMessage }}</div>
 
                     <div class="text-center">
                       <argon-button
@@ -87,11 +114,9 @@ onBeforeUnmount(() => {
                 <div class="px-1 pt-0 text-center card-footer px-lg-2">
                   <p class="mx-auto mb-4 text-sm">
                     Don't have an account?
-                    <a
-                      href="javascript:;"
-                      class="text-success text-gradient font-weight-bold"
-                      >Sign up</a
-                    >
+                    <router-link  to="/signup" class="text-dark font-weight-bolder">
+                      Sign up
+                    </router-link>
                   </p>
                 </div>
               </div>
