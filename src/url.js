@@ -1,3 +1,3 @@
-const baseURLImg = 'http://127.0.0.1:8000';
+const baseURLImg = 'https://apilaravel.racielhernandez.com/';
 
 export default baseURLImg;
