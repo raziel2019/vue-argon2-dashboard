@@ -96,9 +96,14 @@ function handleFile(e) {
 async function onSaveProduct() {
   errors.value.code = productForm.value.code ? "" : "Falta el código";
   errors.value.name = productForm.value.name ? "" : "Falta el nombre";
+  errors.value.description = productForm.value.description ? "" : "Falta la descripción";
+  errors.value.photo = productForm.value.photo ? "" : "Falta la foto";
+  errors.value.categories = productForm.value.categories.length ? "" : "Falta al menos una categoría";
+  errors.value.tariffs = productForm.value.tariffs.length ? "" : "Falta al menos una tarifa";
 
-  if (errors.value.code || errors.value.name) return;
-
+  if (errors.value.code || errors.value.name || errors.value.description|| errors.value.photo || errors.value.categories || errors.value.tariffs) {
+    return; 
+  }
   try {
     showModal.value = true;
 
@@ -109,11 +114,12 @@ async function onSaveProduct() {
     formData.append("photo", productForm.value.photo);
     productForm.value.categories.forEach((catId) => {
       formData.append("category_ids[]", catId);
-      productForm.value.tariffs.forEach((tariff, index) => {
-        formData.append(`tariffs[${index}][start_date]`, tariff.start_date);
-        formData.append(`tariffs[${index}][end_date]`, tariff.end_date);
-        formData.append(`tariffs[${index}][price]`, tariff.price);
       });
+
+    productForm.value.tariffs.forEach((tariff, index) => {
+      formData.append(`tariffs[${index}][start_date]`, tariff.start_date);
+      formData.append(`tariffs[${index}][end_date]`, tariff.end_date);
+      formData.append(`tariffs[${index}][price]`, tariff.price);
     });
 
     const created = await createProduct(formData);
@@ -166,6 +172,7 @@ async function onUpdateProduct() {
   try {
     showModal.value = true;
     const formData = new FormData();
+    formData.append("_method", "PUT");
     formData.append("code", selectedProduct.value.code);
     formData.append("name", selectedProduct.value.name);
     formData.append("description", selectedProduct.value.description);
@@ -271,7 +278,9 @@ async function openShowModal(product) {
                   placeholder="Código del producto"
                 />
                 <p v-if="errors.code" class="text-danger">{{ errors.code }}</p>
+
               </div>
+
               <div class="col-md-6 mb-3">
                 <label>Nombre</label>
                 <argon-input
@@ -279,7 +288,10 @@ async function openShowModal(product) {
                   type="text"
                   placeholder="Nombre del producto"
                 />
+                <p v-if="errors.name" class="text-danger">{{ errors.name }}</p>
+
               </div>
+
               <div class="col-md-12 mb-3">
                 <label>Foto</label>
                 <argon-input
@@ -288,6 +300,8 @@ async function openShowModal(product) {
                   placeholder="URL de la foto"
                 />
               </div>
+              <p v-if="errors.photo" class="text-danger">{{ errors.photo }}</p>
+
               <div class="col-md-12 mb-3">
                 <label>Categoría</label>
                 <select class="form-select" v-model="productForm.categories" multiple>
@@ -300,6 +314,8 @@ async function openShowModal(product) {
                     }}{{ cat.name }}
                   </option>
                 </select>
+                <p v-if="errors.categories" class="text-danger">{{ errors.categories }}</p>
+
               </div>
               <div class="col-md-12 mb-3">
                 <label>Tarifas</label>
@@ -342,6 +358,7 @@ async function openShowModal(product) {
                       X
                     </button>
                   </div>
+                <p v-if="errors.tariffs" class="text-danger">{{ errors.tariffs }}</p>
                 </div>
                 <ArgonButton
                   type="button"
@@ -361,6 +378,8 @@ async function openShowModal(product) {
                   ></textarea>
                   <label>Descripción</label>
                 </div>
+                <p v-if="errors.description" class="text-danger">{{ errors.description }}</p>
+
               </div>
             </div>
             <div class="text-center">

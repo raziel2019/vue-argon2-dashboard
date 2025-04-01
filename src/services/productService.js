@@ -39,7 +39,11 @@ export async function createProduct(data) {
 
 export async function updateProduct(id, data) {
   try{
-    const response = await apiClient.put(`/products/${id}`, data);
+    const response = await apiClient.post(`/products/${id}`, data,{
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   }
  catch(error){
